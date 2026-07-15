@@ -1,0 +1,24 @@
+{
+  "name": "nishiyoufang-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "python3 -m http.server 5173 --directory www",
+    "build:data": "node scripts/build-data.js",
+    "build:assets": "python3 scripts/generate-assets.py && python3 scripts/setup-android-assets.py",
+    "sync:android": "npx cap sync android",
+    "open:android": "npx cap open android",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
+    "@capacitor/ios": "^8.4.2"
+  }
+}

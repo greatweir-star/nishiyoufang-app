@@ -1,0 +1,89 @@
+name: Build Android & iOS
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build data & assets
+        run: |
+          npm run build:data
+          npm run build:assets
+
+      - name: Sync Android
+        run: npx cap sync android
+
+      - name: Build Debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nishiyoufang-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+  build-ios:
+    name: Build iOS Archive
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build data & assets
+        run: |
+          npm run build:data
+          npm run build:assets
+
+      - name: Sync iOS
+        run: npx cap sync ios
+
+      # 如需导出 IPA，需先在 GitHub Secrets 中配置：
+      #   BUILD_CERTIFICATE_BASE64, P12_PASSWORD, BUILD_PROVISION_PROFILE_BASE64, KEYCHAIN_PASSWORD
+      # 然后取消下面注释并配置签名。
+      # 参考：https://docs.github.com/en/actions/deployment/deploying-xcode-applications/installing-an-apple-certificate-on-macos-runners-for-xcode-development
+
+      - name: Build iOS Simulator App
+        working-directory: ios/App
+        run: xcodebuild -scheme App -destination 'platform=iOS Simulator,name=iPhone 15' -derivedDataPath build
+
+      - name: Upload iOS Simulator Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: nishiyoufang-ios-simulator
+          path: ios/App/build/Build/Products/Debug-iphonesimulator/App.app
