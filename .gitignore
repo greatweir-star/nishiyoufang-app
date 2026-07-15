@@ -1,0 +1,6 @@
+node_modules/
+android/app/build/
+ios/App/build/
+.DS_Store
+*.log
+.env
